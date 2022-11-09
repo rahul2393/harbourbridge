@@ -16,6 +16,7 @@ package postgres
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"math/bits"
@@ -30,6 +31,7 @@ import (
 	"github.com/cloudspannerecosystem/harbourbridge/internal"
 	"github.com/cloudspannerecosystem/harbourbridge/spanner/ddl"
 )
+
 // ProcessDataRow converts a row of data and writes it out to Spanner.
 // srcTable and srcCols are the source table and columns respectively,
 // and vals contains string data to be converted to appropriate types
@@ -189,7 +191,11 @@ func convInt64(val string) (int64, error) {
 
 func convJSON(conv *internal.Conv, val string) (interface{}, error) {
 	if conv.TargetDb == constants.TargetExperimentalPostgres {
-		return spanner.PGNumeric{Numeric: val, Valid: true}, nil
+		var dict map[string]interface{}
+		if err := json.Unmarshal([]byte(val), &dict); err != nil {
+			return val, fmt.Errorf("can't convert %s to  (posgres type: jsonb)", val)
+		}
+		return spanner.PGJsonB{Value: dict, Valid: true}, nil
 	} else {
 		return val, fmt.Errorf("data conversion not implemented for type JSON")
 	}

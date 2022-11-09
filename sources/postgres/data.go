@@ -30,7 +30,6 @@ import (
 	"github.com/cloudspannerecosystem/harbourbridge/internal"
 	"github.com/cloudspannerecosystem/harbourbridge/spanner/ddl"
 )
-
 // ProcessDataRow converts a row of data and writes it out to Spanner.
 // srcTable and srcCols are the source table and columns respectively,
 // and vals contains string data to be converted to appropriate types
@@ -138,6 +137,8 @@ func convScalar(conv *internal.Conv, spannerType ddl.Type, srcTypeName string, l
 		return convTimestamp(srcTypeName, location, val)
 	case ddl.JSON:
 		return val, nil
+	case ddl.JSONB:
+		return convJSON(conv, val)
 	default:
 		return val, fmt.Errorf("data conversion not implemented for type %v", spannerType.Name)
 	}
@@ -184,6 +185,14 @@ func convInt64(val string) (int64, error) {
 		return i, fmt.Errorf("can't convert to int64: %w", err)
 	}
 	return i, err
+}
+
+func convJSON(conv *internal.Conv, val string) (interface{}, error) {
+	if conv.TargetDb == constants.TargetExperimentalPostgres {
+		return spanner.PGNumeric{Numeric: val, Valid: true}, nil
+	} else {
+		return val, fmt.Errorf("data conversion not implemented for type JSON")
+	}
 }
 
 // convNumeric maps a source database string value (representing a numeric)

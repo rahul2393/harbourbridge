@@ -49,7 +49,8 @@ const (
 	// Numeric represent NUMERIC type.
 	Numeric string = "NUMERIC"
 	// Json represent JSON type.
-	JSON string = "JSON"
+	JSON  string = "JSON"
+	JSONB string = "JSONB"
 	// MaxLength is a sentinel for Type's Len field, representing the MAX value.
 	MaxLength = math.MaxInt64
 	// StringMaxLength represents maximum allowed STRING length.
